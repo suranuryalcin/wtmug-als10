@@ -1,0 +1,16 @@
+{
+  "name": "Görme Keskinliği Testi",
+  "short_name": "Görme Testi",
+  "description": "Doktor ve hasta arasında P2P görme keskinliği testi",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0b3d91",
+  "lang": "tr",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

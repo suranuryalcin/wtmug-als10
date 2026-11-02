@@ -1,0 +1,222 @@
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --doctor: #0ea5e9;
+  --patient: #22c55e;
+  --danger: #ef4444;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+}
+
+.screen {
+  display: none;
+  width: 100%;
+  max-width: 640px;
+  padding: 16px;
+  flex-direction: column;
+}
+.screen.active { display: flex; }
+
+/* Rol seçimi */
+#roleScreen { justify-content: center; align-items: center; text-align: center; }
+#roleScreen h1 { font-size: 1.8rem; margin-bottom: 8px; }
+.subtitle { color: var(--muted); margin-bottom: 32px; }
+.role-buttons { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.role-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 24px 32px; border: none; border-radius: 16px;
+  font-size: 1.1rem; font-weight: 600; color: white; cursor: pointer;
+  transition: transform .15s ease;
+}
+.role-btn:hover { transform: translateY(-3px); }
+.role-btn .icon { font-size: 2.2rem; }
+.role-btn.doctor { background: var(--doctor); }
+.role-btn.patient { background: var(--patient); }
+.hint { color: var(--muted); font-size: .85rem; margin-top: 32px; }
+
+/* Üst bar */
+.topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 4px 16px;
+}
+.topbar h2 { flex: 1; font-size: 1.2rem; }
+.back {
+  background: transparent; border: none; color: var(--text);
+  font-size: 1.4rem; cursor: pointer; padding: 4px 8px;
+}
+.status { font-size: .8rem; color: var(--muted); }
+
+/* Paneller */
+.panel { display: flex; flex-direction: column; gap: 16px; align-items: center; }
+.hidden { display: none !important; }
+
+.primary {
+  background: var(--accent); color: #012; border: none;
+  padding: 14px 28px; border-radius: 12px; font-weight: 700;
+  font-size: 1rem; cursor: pointer; width: 100%; max-width: 320px;
+}
+.primary:disabled { opacity: .4; cursor: not-allowed; }
+
+/* QR */
+.qr-area { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+#qrCode canvas, #qrCode img { border-radius: 12px; background: white; padding: 8px; }
+.peer-id { font-size: .8rem; color: var(--muted); word-break: break-all; }
+
+/* Zamanlayıcı */
+.timer {
+  font-size: 3rem; font-weight: 800; color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Harf gösterimi (Doktor) */
+.letter {
+  font-size: 40vh; line-height: 1; font-weight: 900;
+  color: white; transition: font-size .3s ease;
+  text-align: center;
+}
+
+.progress {
+  display: flex; justify-content: space-between; width: 100%;
+  max-width: 320px; color: var(--muted); font-size: .9rem;
+}
+
+/* Hasta test */
+.letter-hint { color: var(--muted); }
+.letter-input {
+  width: 120px; height: 120px; text-align: center;
+  font-size: 3rem; font-weight: 800;
+  background: var(--card); color: var(--text);
+  border: 2px solid var(--accent); border-radius: 16px;
+  text-transform: uppercase;
+}
+.feedback { font-size: 1.2rem; font-weight: 600; min-height: 1.5em; }
+.feedback.ok { color: var(--patient); }
+.feedback.err { color: var(--danger); }
+
+/* Bilgi kutusu */
+.info-box {
+  background: var(--card); padding: 16px; border-radius: 12px;
+  width: 100%; max-width: 480px;
+}
+.info-box h3 { margin-bottom: 8px; }
+.info-box ul { padding-left: 20px; color: var(--muted); line-height: 1.6; }
+
+.checkbox {
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; font-size: 1rem;
+}
+.checkbox input { width: 20px; height: 20px; }
+
+/* Sonuç */
+.result-card {
+  background: var(--card); padding: 20px; border-radius: 16px;
+  width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 12px;
+}
+.result-row {
+  display: flex; justify-content: space-between;
+  border-bottom: 1px solid #334155; padding-bottom: 8px;
+}
+.result-row:last-child { border-bottom: none; padding-bottom: 0; }
+.result-row span { color: var(--muted); }
+.result-row strong { font-size: 1.1rem; }
+
+.disclaimer {
+  color: #fbbf24; font-size: .8rem; text-align: center;
+  max-width: 400px; line-height: 1.4;
+}
+
+/* QR okuyucu */
+#qrReader { width: 100%; max-width: 400px; }
+#qrReader video { border-radius: 12px; }
+
+@media (max-width: 480px) {
+  .letter { font-size: 30vh; }
+}
+/* ============ Sekmeler (Hasta QR / Manuel ID) ============ */
+.tabs {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 8px;
+}
+.tab {
+  flex: 1;
+  padding: 12px 8px;
+  background: var(--card);
+  color: var(--muted);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: .95rem;
+  transition: all .15s ease;
+}
+.tab:hover { color: var(--text); }
+.tab.active {
+  background: var(--accent);
+  color: #012;
+  border-color: var(--accent);
+}
+
+.tab-pane { display: none; width: 100%; flex-direction: column; gap: 12px; align-items: center; }
+.tab-pane.active { display: flex; }
+
+/* ============ Manuel ID Girişi ============ */
+.peer-input {
+  width: 100%;
+  max-width: 480px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 2px solid #334155;
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 1rem;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  word-break: break-all;
+}
+.peer-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.error-text {
+  color: var(--danger);
+  font-size: .85rem;
+  min-height: 1.2em;
+  text-align: center;
+}
+
+/* QR üretilemezse gösterilen yedek kutu */
+.qr-fallback {
+  background: white;
+  color: #0b3d91;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: .9rem;
+  max-width: 240px;
+}
+.qr-fallback code {
+  display: block;
+  margin-top: 8px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* Mobilde sekmeler biraz daha kompakt */
+@media (max-width: 480px) {
+  .tab { font-size: .85rem; padding: 10px 6px; }
+}

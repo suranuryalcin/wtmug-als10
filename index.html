@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b3d91" />
+  <meta name="description" content="Doktor ve hasta arasında uçtan uca P2P görme keskinliği testi (simülasyon)." />
+  <title>Görme Keskinliği Testi</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Görme Testi" />
+
+  <!-- Stil -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Kütüphaneler (sıra önemli: qrcode → peerjs → html5-qrcode) -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script>
+    // Yedek CDN: birincil yüklenmezse unpkg'den dene
+    if (typeof QRCode === "undefined") {
+      document.write('<script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"><\/script>');
+    }
+  </script>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+<!-- ============ ROL SEÇİM EKRANI ============ -->
+<section id="roleScreen" class="screen active">
+  <h1>Görme Keskinliği Testi</h1>
+  <p class="subtitle">Uçtan uca şifreli P2P bağlantı</p>
+  <div class="role-buttons">
+    <button id="btnDoctor" class="role-btn doctor" type="button">
+      <span class="icon">👨‍⚕️</span>
+      <span>Doktor</span>
+    </button>
+    <button id="btnPatient" class="role-btn patient" type="button">
+      <span class="icon">🧑</span>
+      <span>Hasta</span>
+    </button>
+  </div>
+  <p class="hint">Sunucu yok — cihazlar doğrudan bağlanır.</p>
+</section>
+
+<!-- ============ DOKTOR EKRANI ============ -->
+<section id="doctorScreen" class="screen">
+  <header class="topbar">
+    <button class="back" data-back type="button" aria-label="Geri">←</button>
+    <h2>Doktor Paneli</h2>
+    <span id="docStatus" class="status">Bekliyor</span>
+  </header>
+
+  <!-- Bağlantı aşaması -->
+  <div id="docLobby" class="panel">
+    <button id="btnStartTest" class="primary" type="button">Testi Başlat</button>
+    <div id="qrArea" class="qr-area hidden">
+      <p>Hastanın bu QR kodu okutmasını <b>veya</b> ID'yi girmesini bekleyin:</p>
+      <div id="qrCode"></div>
+      <p class="peer-id">
+        ID: <span id="peerIdText">—</span>
+        <button id="btnCopyId" class="copy-btn" type="button" title="ID'yi kopyala">📋 Kopyala</button>
+      </p>
+    </div>
+  </div>
+
+  <!-- Test aşaması -->
+  <div id="docTest" class="panel hidden">
+    <div id="docTimer" class="timer">60</div>
+    <div id="docLetter" class="letter">A</div>
+    <div class="progress">
+      <span id="docPhase">Sol Göz</span>
+      <span id="docIndex">1 / 8</span>
+    </div>
+  </div>
+
+  <!-- Sonuç aşaması -->
+  <div id="docResult" class="panel hidden">
+    <h2>Test Sonucu</h2>
+    <div class="result-card">
+      <div class="result-row"><span>Teşhis</span><strong id="resDiagnosisDoc">—</strong></div>
+      <div class="result-row"><span>Derece</span><strong id="resDegreeDoc">—</strong></div>
+      <div class="result-row"><span>Doğru</span><strong id="resCorrectDoc">—</strong></div>
+      <div class="result-row"><span>Hatalı</span><strong id="resWrongDoc">—</strong></div>
+    </div>
+    <p class="disclaimer">⚠️ Bu sonuç yalnızca simülasyon amaçlıdır, tıbbi teşhis yerine geçmez.</p>
+    <button class="primary" type="button" onclick="location.reload()">Yeni Test</button>
+  </div>
+</section>
+
+<!-- ============ HASTA EKRANI ============ -->
+<section id="patientScreen" class="screen">
+  <header class="topbar">
+    <button class="back" data-back type="button" aria-label="Geri">←</button>
+    <h2>Hasta Paneli</h2>
+    <span id="patStatus" class="status">Bekliyor</span>
+  </header>
+
+  <!-- Bilgilendirme + onay -->
+  <div id="patInfo" class="panel">
+    <div class="info-box">
+      <h3>Lütfen dikkatlice okuyun</h3>
+      <ul>
+        <li>Her harf için <b>5 saniyeniz</b> vardır.</li>
+        <li>Sadece <b>büyük harfler</b> kullanılmıştır (O/0 karışıklığına dikkat).</li>
+        <li>Doktorun ekranındaki <b>QR kodu okutun</b> <i>veya</i> <b>ID kodunu girin</b>.</li>
+        <li>Ekran parlaklığını artırın ve ortam ışığını ayarlayın.</li>
+      </ul>
+    </div>
+    <label class="checkbox">
+      <input type="checkbox" id="chkUnderstand" />
+      <span>Okudum, anladım.</span>
+    </label>
+    <button id="btnOpenCamera" class="primary" type="button" disabled>Devam Et</button>
+  </div>
+
+  <!-- Bağlantı: QR tarama + manuel ID -->
+  <div id="patScan" class="panel hidden">
+    <!-- Sekme başlıkları -->
+    <div class="tabs" role="tablist">
+      <button id="tabQr" class="tab active" role="tab" type="button">📷 QR ile Tara</button>
+      <button id="tabManual" class="tab" role="tab" type="button">⌨️ ID ile Bağlan</button>
+    </div>
+
+    <!-- QR sekmesi -->
+    <div id="paneQr" class="tab-pane active">
+      <p>QR kodu kameraya tutun…</p>
+      <div id="qrReader"></div>
+    </div>
+
+    <!-- Manuel ID sekmesi -->
+    <div id="paneManual" class="tab-pane">
+      <p>Doktorun ekranındaki <b>ID</b> kodunu girin:</p>
+      <input
+        id="manualPeerId"
+        class="peer-input"
+        type="text"
+        placeholder="örn. a1b2c3d4-..."
+        autocomplete="off"
+        autocapitalize="none"
+        autocorrect="off"
+        spellcheck="false"
+      />
+      <button id="btnManualConnect" class="primary" type="button">Bağlan</button>
+      <p id="manualError" class="error-text"></p>
+    </div>
+  </div>
+
+  <!-- Test aşaması -->
+  <div id="patTest" class="panel hidden">
+    <div id="patTimer" class="timer">60</div>
+    <div id="patLetterHint" class="letter-hint">Gördüğünüz harfi yazın</div>
+    <input id="patInput" class="letter-input" maxlength="1" autocomplete="off"
+           autocorrect="off" autocapitalize="characters" spellcheck="false"
+           inputmode="text" disabled />
+    <div class="progress">
+      <span id="patPhase">Sol Göz</span>
+      <span id="patIndex">1 / 8</span>
+    </div>
+    <div id="patFeedback" class="feedback"></div>
+  </div>
+
+  <!-- Sonuç -->
+  <div id="patResult" class="panel hidden">
+    <h2>Test Sonucu</h2>
+    <div class="result-card">
+      <div class="result-row"><span>Teşhis</span><strong id="resDiagnosisPat">—</strong></div>
+      <div class="result-row"><span>Derece</span><strong id="resDegreePat">—</strong></div>
+      <div class="result-row"><span>Doğru</span><strong id="resCorrectPat">—</strong></div>
+      <div class="result-row"><span>Hatalı</span><strong id="resWrongPat">—</strong></div>
+    </div>
+    <p class="disclaimer">⚠️ Bu sonuç yalnızca simülasyon amaçlıdır, tıbbi teşhis yerine geçmez.</p>
+    <button class="primary" type="button" onclick="location.reload()">Kapat</button>
+  </div>
+</section>
+
+<!-- Ana mantık en sonda yüklenir -->
+<script src="app.js"></script>
+</body>
+</html>
